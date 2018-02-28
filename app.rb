@@ -1,11 +1,19 @@
 require 'sinatra'
 require 'json'
 require 'logger'
+require 'le'
 
-set :custom_logger, Logger.new("#{settings.root}/log/#{settings.environment}.log")
+local =
+  if settings.environment == :development
+    "#{settings.root}/log/#{settings.environment}.log"
+  else
+    false
+  end
+
+set :logentries, Le.new(ENV['LOGENTRIES_TOKEN'], debug: true, local: local)
 
 before do
-  env["rack.logger"] = settings.custom_logger
+  env["rack.logger"] = settings.logentries
 
   query = env["QUERY_STRING"]
   msg   = format("%s %s for %s",
